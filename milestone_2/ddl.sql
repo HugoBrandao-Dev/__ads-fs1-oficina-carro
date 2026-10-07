@@ -1,4 +1,5 @@
 CREATE DATABASE oficina_carro;
+
 USE oficina_carro;
 
 CREATE TABLE pessoa (
@@ -13,7 +14,7 @@ CREATE TABLE pessoa (
     pess_en_logradouro VARCHAR(45) NOT NULL,
     pess_en_numero VARCHAR(6) NOT NULL,
     pess_en_bairro VARCHAR(45) NOT NULL,
-    pess_en_complemento VARCHAR(100) NOT NULL,
+    pess_en_complemento VARCHAR(100),
     pess_observacoes VARCHAR(500),
     PESS_CRIADO_EM DATETIME NOT NULL,
     PESS_ATUALIZADO_EM DATETIME NOT NULL,
@@ -38,20 +39,20 @@ CREATE TABLE funcao (
 -- INSERT INTO funcao (funo_funcao) VALUES ("Mecânico"),("Secretária"),("Estoquista");
 
 CREATE TABLE funcionario (
-	func_login VARCHAR(30),
-	func_senha VARCHAR(100),
+	func_login VARCHAR(30) NOT NULL,
+	func_senha VARCHAR(100) NOT NULL,
 	func_hr_trabalho_entrada TIME,
     func_hr_trabalho_saida TIME,
-    funo_id VARCHAR(45),
+    funo_id INT NOT NULL,
     pess_id INT NOT NULL,
     FUNC_CRIADO_EM DATETIME NOT NULL,
     FUNC_ATUALIZADO_EM DATETIME NOT NULL,
     
     UNIQUE KEY uk_funcionario_login (func_login),
     
-    CONSTRAINT pk_funcionario PRIMARY KEY (pess_id, funo_id, func_login),
+    CONSTRAINT pk_funcionario PRIMARY KEY (pess_id, func_login),
     
-    CONSTRAINT fk__func_funcao 
+    CONSTRAINT fk_func_funcao 
 		FOREIGN KEY (funo_id) 
         REFERENCES funcao (funo_id),
     CONSTRAINT fk_func_pessoa
@@ -107,9 +108,12 @@ CREATE TABLE veiculo (
     
     CONSTRAINT pk_veiculo PRIMARY KEY (veic_id),
     
-    CONSTRAINT fk_camo_modelo 
+    CONSTRAINT fk_veic_modelo 
 		FOREIGN KEY (camo_id) 
-        REFERENCES carro_modelo (camo_id)
+        REFERENCES carro_modelo (camo_id),
+	CONSTRAINT fk_veic_pessoa
+		FOREIGN KEY (pess_id)
+        REFERENCES pessoa(pess_id)
 );
 
 CREATE INDEX ix_camo_veiculo ON veiculo (camo_id);
@@ -141,7 +145,7 @@ CREATE TABLE peca (
     peca_categoria VARCHAR(50) NOT NULL,
     peca_descricao VARCHAR(255) NOT NULL,
     peca_estoque INT NOT NULL,
-    peca_preco DECIMAL(5, 2) NOT NULL,
+    peca_preco DECIMAL(10, 2) NOT NULL,
     carr_modelo INT NOT NULL,
     PECA_CRIADO_EM DATETIME NOT NULL,
     PECA_ATUALIZADO_EM DATETIME NOT NULL,
@@ -197,12 +201,10 @@ CREATE INDEX ix_orcamento_02 ON orcamento (ORCA_CRIADO_EM);
 
 CREATE TABLE ordem_servico (
     os_id INT NOT NULL AUTO_INCREMENT,
-    os_detalhes VARCHAR(45) NULL,
+    os_detalhes VARCHAR(500),
     os_box TINYINT UNSIGNED NOT NULL,
-    os_inicio TIME NOT NULL,
+    os_inicio DATETIME,
     os_status VARCHAR(20) NOT NULL,
-    serv_id INT NOT NULL,
-    agen_id INT NOT NULL,
     orca_id INT NOT NULL,
     meca_id INT NOT NULL, # Mecanico e uma especializacao da tabela 'pessoa'
     OS_CRIADO_EM DATETIME NOT NULL,
@@ -212,12 +214,6 @@ CREATE TABLE ordem_servico (
     
     CONSTRAINT pk_ordem_servico PRIMARY KEY (os_id),
     
-    CONSTRAINT fk_os_servico 
-		FOREIGN KEY (serv_id)
-        REFERENCES servico (serv_id),
-    CONSTRAINT fk_os_agendamento 
-		FOREIGN KEY (agen_id)
-        REFERENCES agendamento (agen_id),
 	CONSTRAINT fk_os_orcamento 
 		FOREIGN KEY (orca_id)
 		REFERENCES orcamento(orca_id),
@@ -227,7 +223,6 @@ CREATE TABLE ordem_servico (
 );
 
 CREATE INDEX ix_servico_os ON ordem_servico(serv_id);
-CREATE INDEX ix_agendamento_os ON ordem_servico(agen_id);
 CREATE INDEX ix_orcamento_os ON ordem_servico(orca_id);
 CREATE INDEX ix_mecanico_os ON ordem_servico(meca_id);
 
